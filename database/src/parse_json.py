@@ -4,7 +4,7 @@ from datetime import datetime
 wanted_keys = ('id', 'authors', 'title', 'categories', 'abstract', 'versions')
 date_format = '%a, %d %b %Y %H:%M:%S %Z'
 
-output_file = open('data/processed-data.json', 'w')
+output_file = open('data/processed_data.json', 'w')
 
 def versions_to_timestamp(versions):
     for version_dict in versions:
@@ -15,7 +15,7 @@ def versions_to_timestamp(versions):
     return
 
 
-with open('data/arxiv-metadata-oai-snapshot.json', 'r') as f:
+with open('data/raw_data.json', 'r') as f:
     for data_obj in f:
         data_dict = json.loads(data_obj)
         # filter to desired keys
