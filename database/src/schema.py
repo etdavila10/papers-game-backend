@@ -1,42 +1,67 @@
 import sqlite3
 
-# Connect to the database
-conn = sqlite3.connect('database.db')
+def create_tables(db_name='database.db'):
+    conn = sqlite3.connect(db_name)
+    cursor = conn.cursor()
+    try:
+        # Enable foreign key support (important for maintaining referential integrity)
+        cursor.execute("PRAGMA foreign_keys = ON;")
 
-print('Connected to database')
+        # 1. Create Categories Table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS categories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT UNIQUE NOT NULL
+            );
+        """)
+        print("Table 'categories' created or already exists.")
 
-# Create a table for the papers
-conn.execute('''
-    CREATE TABLE papers (
-        id VARCHAR(50) PRIMARY KEY,
-        submitter VARCHAR(255) NOT NULL,
-        authors TEXT NOT NULL,
-        title TEXT NOT NULL,
-        abstract TEXT NOT NULL,
-        update_date DATE
-    );
-''')
+        # 2. Create Paper Identifiers Table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS paper_ids (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                identifier TEXT UNIQUE NOT NULL
+            );
+        """)
+        print("Table 'paper_ids' created or already exists.")
 
-# Create a table for categories
-conn.execute('''
-    CREATE TABLE categories (
-        category_code VARCHAR(50) PRIMARY KEY
-    );
-''')
+        # 3. Create Join Table for Many-to-Many Relationship
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS category_paper (
+                category_id INTEGER NOT NULL,
+                paper_id INTEGER NOT NULL,
+                PRIMARY KEY (category_id, paper_id),
+                FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
+                FOREIGN KEY (paper_id) REFERENCES paper_ids(id) ON DELETE CASCADE
+            );
+        """)
+        print("Table 'category_paper' created or already exists.")
 
-# Table for paper-category mapping
-conn.execute('''
-    CREATE TABLE papers_categories (
-        paper_id VARCHAR(50),
-        category_code VARCHAR(50),
-        PRIMARY KEY (paper_id, category_code),
-        FOREIGN KEY (paper_id) REFERENCES papers(id),
-        FOREIGN KEY (category_code) REFERENCES categories(category_code)
-    );
-''')
+        # 4. Create Indexes to Improve Query Performance (Optional but Recommended)
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_paper_identifier ON paper_ids(identifier);
+        """)
+        print("Index 'idx_paper_identifier' created or already exists.")
 
-print("papers/categories/mapping tables created")
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_category_name ON categories(name);
+        """)
+        print("Index 'idx_category_name' created or already exists.")
 
-conn.close()
+        # Commit the changes to the database
+        conn.commit()
+        print("All tables and indexes have been successfully created.")
 
+    except sqlite3.Error as e:
+        print(f"An error occurred while creating tables: {e}")
+        # Rollback any changes if an error occurs
+        conn.rollback()
 
+    finally:
+        # Close the cursor and the connection
+        cursor.close()
+        conn.close()
+        print("Database connection closed.")
+
+if __name__ == "__main__":
+    create_tables()

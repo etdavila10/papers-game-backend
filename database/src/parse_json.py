@@ -1,19 +1,8 @@
 import json
-from datetime import datetime
 
-wanted_keys = ('id', 'authors', 'title', 'categories', 'abstract', 'versions')
-date_format = '%a, %d %b %Y %H:%M:%S %Z'
+wanted_keys = ('id', 'categories')
 
-output_file = open('data/processed_data.json', 'w')
-
-def versions_to_timestamp(versions):
-    for version_dict in versions:
-        if version_dict['version'] == 'v1':
-            date_str = version_dict['created']
-            dt_obj = datetime.strptime(date_str, date_format)
-            return dt_obj.timestamp()
-    return
-
+data_array = []
 
 with open('data/raw_data.json', 'r') as f:
     for data_obj in f:
@@ -21,16 +10,14 @@ with open('data/raw_data.json', 'r') as f:
         # filter to desired keys
         processed_dict = dict((k, data_dict[k]) for k in wanted_keys)
 
-        # convert versions list to one timestamp corresponding to initial
-        # upload date
-        processed_dict['timestamp'] = versions_to_timestamp(processed_dict['versions'])
-        # delete versions key
-        processed_dict.pop('versions', None)
+        # create array for categories
+        processed_dict['categories'] = processed_dict['categories'].split(' ')
 
         # write to processed json file
-        processed_json = json.dumps(processed_dict) + '\n'
-        output_file.write(processed_json)
+        data_array.append(processed_dict)
 
-output_file.close()
+with open('data/processed_data.json', 'w') as output_file:
+    json.dump(data_array, output_file)
+
 print('Output file created with wanted keys')
 
