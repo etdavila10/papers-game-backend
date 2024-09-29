@@ -1,6 +1,8 @@
-from typing import Union
-
 from fastapi import FastAPI
+
+import arxiv
+import json
+import sqlite3
 
 app = FastAPI()
 
@@ -8,6 +10,25 @@ app = FastAPI()
 def read_root():
     return {"Hello": "World"}
 
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
+@app.get("/random")
+def read_articles():
+
+    # should probably change location of database
+    conn = sqlite3.connect('../database/src/database.db')
+
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT identifier FROM paper_ids ORDER BY RANDOM() LIMIT 2')
+
+    paper_ids = [row[0] for row in cursor.fetchmany(2)]
+    print(paper_ids)
+
+    conn.close()
+
+
+    response_dict = arxiv.call_arxiv_api(paper_ids)
+
+    # List of dictionaries
+    articles_list = response_dict["feed"]["entry"]
+
+    return articles_list[0]
