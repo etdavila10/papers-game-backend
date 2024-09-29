@@ -1,9 +1,7 @@
 import json
 import sqlite3
 
-# Sample JSON data (as provided)
-# ToDo: Replace this with the actual JSON data
-with open('data/remapped_data.json', 'r') as f:
+with open('data/processed_data.json', 'r') as f:
     json_data = json.load(f)
 
 # Connect to SQLite database
@@ -49,4 +47,4 @@ for category, papers in json_data.items():
 conn.commit()
 conn.close()
 
-print('everything is done')
+print('Database updated with data.')

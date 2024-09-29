@@ -21,8 +21,10 @@ python parse_json.py
 # run the 'schema.py' script
 # this will create the tables necessary
 # to load in the updated data
+python schema.py
 
-# run a 'load_data.py' script
+# run 'load_json.py' script
 # which will go through and load the
 # processed_data.json file into the
 # database tables
+python load_json.py
