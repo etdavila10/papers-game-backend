@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-import arxiv
+from . import arxiv
 import json
 import sqlite3
 
@@ -12,7 +12,7 @@ def read_root():
 
 @app.get("/random")
 def read_articles():
-    conn = sqlite3.connect('../database/src/database.db')
+    conn = sqlite3.connect('database/src/database.db')
     cursor = conn.cursor()
     cursor.execute('SELECT identifier FROM paper_ids ORDER BY RANDOM() LIMIT 2')
 
