@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from . import arxiv
 import json
@@ -6,18 +7,26 @@ import sqlite3
 
 app = FastAPI()
 
-API_KEY = "test123"
+origins = [
+    "http://localhost",
+    "http://localhost:8080",
+    "https://tranquil-starship-92a3ed.netlify.app/"
+]
 
-def validate_api_key(api_key: str):
-    if api_key != API_KEY:
-        raise HTTPException(status_code=403, detail="Forbidden")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["GET"],
+    allow_headers=["*"]
+)
 
 @app.get("/")
-def read_root(api_key: str = Depends(validate_api_key)):
+async def read_root():
     return {"Hello": "World"}
 
 @app.get("/random")
-def read_articles(api_key: str = Depends(validate_api_key)):
+def read_articles():
     conn = sqlite3.connect('database/src/database.db')
     cursor = conn.cursor()
     cursor.execute('SELECT identifier FROM paper_ids ORDER BY RANDOM() LIMIT 2')
