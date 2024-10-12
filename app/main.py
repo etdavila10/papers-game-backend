@@ -60,8 +60,6 @@ async def load_articles(num_articles):
 
 async def check_sufficient_articles():
     while True:
-        print("Checking something in the background...")
-
         num_keys = await redis.dbsize()
         if num_keys < (num_of_articles // 2):
             articles_fill = num_of_articles - num_keys
@@ -83,28 +81,12 @@ async def startup_event():
     global redis
     redis = Redis(host="localhost", port=6379, decode_responses=True)
 
-    # Make sure to remove any articles that were already there
-    await redis.flushdb()
-
-    await load_articles(num_of_articles)
-
     asyncio.create_task(check_sufficient_articles())
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     await redis.close()
-
-
-@app.get("/items/{item_id}")
-async def read_item(item_id: int):
-    key = f"item:{item_id}"
-    cached_data = await redis.get(key)
-    if cached_data:
-        return json.loads(cached_data)
-    else:
-        return {"error": "Item not found"}
-
 
 @app.get("/random")
 async def read_articles():
